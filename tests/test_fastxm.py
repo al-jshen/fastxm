@@ -60,3 +60,19 @@ def test_5m_i1d_par(benchmark):
 
 def test_5m_numpy(benchmark):
     benchmark(np.intersect1d, a5m, b5m, return_indices=True, assume_unique=True)
+
+
+def test_smallbig_i1d(benchmark):
+    benchmark(intersect_1d, a5m, b100k)
+
+
+def test_smallbig_i1d_par(benchmark):
+    benchmark(intersect_1d, a5m, b100k, parallel=True)
+
+
+def test_bigsmall_i1d(benchmark):
+    benchmark(intersect_1d, a100k, b5m)
+
+
+def test_bigsmall_i1d_par(benchmark):
+    benchmark(intersect_1d, a100k, b5m, parallel=True)

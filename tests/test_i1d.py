@@ -2,7 +2,7 @@ import numpy as np
 from i1d import intersect_1d
 
 size = 10_000
-iters = 20
+iters = 50
 
 a1k = np.random.choice(10_000, size=1_000, replace=False)
 a100k = np.random.choice(1_000_000, size=100_000, replace=False)

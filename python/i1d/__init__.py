@@ -84,4 +84,4 @@ def intersect_1d(
     array([0, 1, 2, 3])
     """
     a_ix, b_ix = _intersect_1d(a, b, parallel)
-    return np.array(a_ix), np.array(b_ix)
+    return a_ix, b_ix

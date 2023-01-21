@@ -5,6 +5,10 @@ on:
     branches:
       - main
       - master
+    paths:
+      - "python/**"
+      - "tests/**"
+      - "src/**"
   pull_request:
   workflow_dispatch:
 
@@ -68,4 +72,3 @@ jobs:
         with:
           command: upload
           args: --skip-existing *
-

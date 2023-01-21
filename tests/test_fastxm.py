@@ -1,5 +1,5 @@
 import numpy as np
-from i1d import intersect_1d
+from fastxm import intersect_1d
 
 size = 10_000
 iters = 50

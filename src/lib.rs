@@ -104,7 +104,7 @@ make_par_i1d_implementation!(
 );
 
 #[pymodule]
-fn i1d(_py: Python, m: &PyModule) -> PyResult<()> {
+fn fastxm(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(i1d_i8, m)?)?;
     m.add_function(wrap_pyfunction!(i1d_i16, m)?)?;
     m.add_function(wrap_pyfunction!(i1d_i32, m)?)?;

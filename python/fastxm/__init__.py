@@ -1,9 +1,9 @@
 from typing import Tuple
-from .i1d import *
+from .fastxm import *
 import numpy as np
 
 
-__doc__ = i1d.__doc__
+__doc__ = fastxm.__doc__
 __all__ = ["intersect_1d"]
 
 

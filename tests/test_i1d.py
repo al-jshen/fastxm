@@ -6,11 +6,11 @@ iters = 20
 
 a1k = np.random.choice(10_000, size=1_000, replace=False)
 a100k = np.random.choice(1_000_000, size=100_000, replace=False)
-a1m = np.random.choice(5_000_000, size=1_000_000, replace=False)
+a5m = np.random.choice(20_000_000, size=5_000_000, replace=False)
 
 b1k = np.random.choice(10_000, size=1_000, replace=False)
 b100k = np.random.choice(1_000_000, size=100_000, replace=False)
-b1m = np.random.choice(5_000_000, size=1_000_000, replace=False)
+b5m = np.random.choice(20_000_000, size=5_000_000, replace=False)
 
 
 def test_same_as_numpy():
@@ -50,13 +50,13 @@ def test_100k_numpy(benchmark):
     benchmark(np.intersect1d, a100k, b100k, return_indices=True, assume_unique=True)
 
 
-def test_1m_i1d(benchmark):
-    benchmark(intersect_1d, a1m, b1m)
+def test_5m_i1d(benchmark):
+    benchmark(intersect_1d, a5m, b5m)
 
 
-def test_1m_i1d_par(benchmark):
-    benchmark(intersect_1d, a1m, b1m, parallel=True)
+def test_5m_i1d_par(benchmark):
+    benchmark(intersect_1d, a5m, b5m, parallel=True)
 
 
-def test_1m_numpy(benchmark):
-    benchmark(np.intersect1d, a1m, b1m, return_indices=True, assume_unique=True)
+def test_5m_numpy(benchmark):
+    benchmark(np.intersect1d, a5m, b5m, return_indices=True, assume_unique=True)

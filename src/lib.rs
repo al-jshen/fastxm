@@ -1,10 +1,14 @@
+use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
-use pyo3::wrap_pyfunction;
+use pyo3::{wrap_pyfunction, PyResult, Python};
 use rayon::prelude::*;
 
-fn argsort<T: Ord>(data: &[T]) -> Vec<usize> {
-    let mut indices = (0..data.len()).collect::<Vec<_>>();
-    indices.sort_by_key(|&i| &data[i]);
+pub fn argsort<T>(arr: &[T]) -> Vec<usize>
+where
+    T: Ord,
+{
+    let mut indices: Vec<usize> = (0..arr.len()).collect();
+    indices.sort_unstable_by_key(|&index| &arr[index]);
     indices
 }
 
@@ -12,18 +16,29 @@ macro_rules! make_i1d_implementation {
     ($($n:ident, $t:expr),+) => {
         $(
             #[pyfunction]
-            pub fn $n(a: Vec<$t>, b: Vec<$t>) -> PyResult<(Vec<usize>, Vec<usize>)> {
-                let mut a = a.to_owned();
-                let indices = argsort(&a);
-                a.sort();
-                Ok(b.iter().enumerate().filter_map(|(i, &b_i)| {
-                    let index = a.binary_search(&b_i);
-                    if let Ok(index) = index {
-                        Some((indices[index], i))
-                    } else {
-                        None
-                    }
-                }).unzip())
+            pub fn $n<'py>(
+                py: Python<'py>,
+                a: PyReadonlyArray1<$t>,
+                b: PyReadonlyArray1<$t>,
+            ) -> PyResult<(&'py PyArray1<usize>, &'py PyArray1<usize>)> {
+                let a = a.as_slice()?;
+                let b = b.as_slice()?;
+                let indices = argsort(a);
+                let sorted_a = indices.iter().map(|&i| a[i]).collect::<Vec<_>>();
+                let (a_ix, b_ix): (Vec<usize>, Vec<usize>) = b
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(i, b_i)| {
+                        let index = sorted_a.binary_search(&b_i);
+                        if let Ok(index) = index {
+                            Some((indices[index], i))
+                        } else {
+                            None
+                        }
+                    })
+                    .unzip();
+
+                Ok((a_ix.into_pyarray(py), b_ix.into_pyarray(py)))
             }
         )+
     };
@@ -33,24 +48,34 @@ macro_rules! make_par_i1d_implementation {
     ($($n:ident, $t:expr),+) => {
         $(
             #[pyfunction]
-            pub fn $n(a: Vec<$t>, b: Vec<$t>) -> PyResult<(Vec<usize>, Vec<usize>)> {
-                let mut a = a.to_owned();
-                let indices = argsort(&a);
-                a.sort();
-                Ok(b.par_iter().enumerate().filter_map(|(i, &b_i)| {
-                    let index = a.binary_search(&b_i);
-                    if let Ok(index) = index {
-                        Some((indices[index], i))
-                    } else {
-                        None
-                    }
-                }).unzip())
+            pub fn $n<'py>(
+                py: Python<'py>,
+                a: PyReadonlyArray1<$t>,
+                b: PyReadonlyArray1<$t>,
+            ) -> PyResult<(&'py PyArray1<usize>, &'py PyArray1<usize>)> {
+                let a = a.as_slice()?;
+                let b = b.as_slice()?;
+                let indices = argsort(a);
+                let sorted_a = indices.par_iter().map(|&i| a[i]).collect::<Vec<_>>();
+                let (a_ix, b_ix): (Vec<usize>, Vec<usize>) = b
+                    .par_iter()
+                    .enumerate()
+                    .filter_map(|(i, b_i)| {
+                        let index = sorted_a.binary_search(&b_i);
+                        if let Ok(index) = index {
+                            Some((indices[index], i))
+                        } else {
+                            None
+                        }
+                    })
+                    .unzip();
+
+                Ok((a_ix.into_pyarray(py), b_ix.into_pyarray(py)))
             }
         )+
     };
 }
 
-// write the implementation for all the types
 make_i1d_implementation!(
     i1d_i8, i8, i1d_i16, i16, i1d_i32, i32, i1d_i64, i64, i1d_u8, u8, i1d_u16, u16, i1d_u32, u32,
     i1d_u64, u64, i1d_isize, isize, i1d_usize, usize

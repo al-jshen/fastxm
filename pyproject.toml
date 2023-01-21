@@ -1,17 +1,21 @@
-[build-system]
-requires = ["maturin>=0.14,<0.15"]
-build-backend = "maturin"
-
 [project]
 name = "fastxm"
+version = "0.1.1"
 requires-python = ">=3.7"
 classifiers = [
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
+authors = ["Jeff Shen <shenjeff@princeton.edu>"]
+description = "blazing fast cross-matching"
+
 dependencies = ["numpy>=1.21"]
 dev-dependencies = ["pytest", "pytest-benchmark"]
 
 [tool.maturin]
 python-source = "python"
+
+[build-system]
+requires = ["maturin>=0.14,<0.15"]
+build-backend = "maturin"

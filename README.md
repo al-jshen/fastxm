@@ -4,8 +4,19 @@ For cross-matching astronomical catalogs. Like `np.intersect1d` but faster.
 
 ### Installation
 
+From `PyPI`:
+
 ```bash
 pip install fastxm
+```
+
+From source:
+
+```bash
+git clone https://github.com/al-jshen/fastxm
+cd fastxm
+maturin build --release
+pip install target/release/<path to wheel>
 ```
 
 ### Example usage
@@ -26,5 +37,6 @@ This requires `pytest` and `pytest-benchmark`.
 ```bash
 git clone https://github.com/al-jshen/fastxm
 cd fastxm
+maturin develop
 pytest
 ```

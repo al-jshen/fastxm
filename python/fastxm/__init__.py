@@ -13,6 +13,18 @@ def _intersect_1d(a, b, parallel):
     ), "a and b must be numpy arrays"
     assert a.dtype == b.dtype, "a and b must have the same dtype"
     assert a.ndim == 1 and b.ndim == 1, "a and b must be 1D arrays"
+    # if not ints, try to convert to ints
+    # if not possible, force conversion to ints using hash
+    if a.dtype != np.int64:
+        try:
+            a = a.astype(np.int64)
+            b = b.astype(np.int64)
+        except:
+            a = a.astype(object)
+            b = b.astype(object)
+            a = hash_array(a)
+            b = hash_array(b)
+
     if parallel:
         if a.dtype == np.int64:
             return par_i1d_i64(a, b)

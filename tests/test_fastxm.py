@@ -1,3 +1,4 @@
+import string
 import numpy as np
 from fastxm import intersect_1d
 
@@ -11,6 +12,22 @@ a5m = np.random.choice(20_000_000, size=5_000_000, replace=False)
 b1k = np.random.choice(10_000, size=1_000, replace=False)
 b100k = np.random.choice(1_000_000, size=100_000, replace=False)
 b5m = np.random.choice(20_000_000, size=5_000_000, replace=False)
+
+s50k1 = np.random.choice(list(string.ascii_lowercase), size=50_000)
+s50k2 = np.random.choice(list(string.ascii_lowercase), size=50_000)
+
+s50k10_1 = np.array(
+    [
+        "".join(i)
+        for i in np.random.choice(list(string.ascii_lowercase), size=(50_000, 10))
+    ]
+)
+s50k10_2 = np.array(
+    [
+        "".join(i)
+        for i in np.random.choice(list(string.ascii_lowercase), size=(50_000, 10))
+    ]
+)
 
 
 def test_same_as_numpy():
@@ -76,3 +93,17 @@ def test_bigsmall_i1d(benchmark):
 
 def test_bigsmall_i1d_par(benchmark):
     benchmark(intersect_1d, a100k, b5m, parallel=True)
+
+
+def test_string_numpy_50k10(benchmark):
+    benchmark(
+        np.intersect1d, s50k10_1, s50k10_2, return_indices=True, assume_unique=True
+    )
+
+
+def test_string_fastxm_50k10(benchmark):
+    benchmark(intersect_1d, s50k10_1, s50k10_2)
+
+
+def test_string_fastxm_50k10_par(benchmark):
+    benchmark(intersect_1d, s50k10_1, s50k10_2, parallel=True)

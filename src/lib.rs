@@ -1,7 +1,9 @@
-use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
+use ahash::AHasher;
+use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1, ToPyArray};
 use pyo3::prelude::*;
 use pyo3::{wrap_pyfunction, PyResult, Python};
 use rayon::prelude::*;
+use std::hash::{Hash, Hasher};
 
 pub fn argsort<T>(arr: &[T]) -> Vec<usize>
 where
@@ -13,31 +15,45 @@ where
 }
 
 #[pyfunction]
-pub fn i1d<'py>(
-    py: Python<'py>,
-    a: PyReadonlyArray1<u64>,
-    b: PyReadonlyArray1<u64>,
-) -> PyResult<(&'py PyArray1<usize>, &'py PyArray1<usize>)> {
-    let (a, b) = if a.len() < b.len() { (b, a) } else { (a, b) };
-    let a = a.as_slice()?;
-    let b = b.as_slice()?;
-    let indices = argsort(a);
-    let sorted_a = indices.iter().map(|&i| a[i]).collect::<Vec<_>>();
-    let (a_ix, b_ix): (Vec<usize>, Vec<usize>) = b
+pub fn hash_array<'py>(py: Python<'py>, arr: PyReadonlyArray1<PyObject>) -> &'py PyArray1<u64> {
+    let arr = arr.as_array();
+    let mut hasher = AHasher::default();
+    let hashes = arr
         .iter()
-        .enumerate()
-        .filter_map(|(i, b_i)| {
-            let index = sorted_a.binary_search(&b_i);
-            if let Ok(index) = index {
-                Some((indices[index], i))
-            } else {
-                None
-            }
+        .map(|s| {
+            s.extract::<&str>(py).unwrap().hash(&mut hasher);
+            hasher.finish()
         })
-        .unzip();
-
-    Ok((a_ix.into_pyarray(py), b_ix.into_pyarray(py)))
+        .collect::<Vec<u64>>();
+    hashes.to_pyarray(py)
 }
+
+// #[pyfunction]
+// pub fn i1d<'py>(
+//     py: Python<'py>,
+//     a: PyReadonlyArray1<PyObject>,
+//     b: PyReadonlyArray1<PyObject>,
+// ) -> PyResult<(&'py PyArray1<usize>, &'py PyArray1<usize>)> {
+//     let (a, b) = if a.len() < b.len() { (b, a) } else { (a, b) };
+//     let a = a.as_slice()?;
+//     let b = b.as_slice()?;
+//     let indices = argsort(a);
+//     let sorted_a = indices.iter().map(|&i| a[i]).collect::<Vec<_>>();
+//     let (a_ix, b_ix): (Vec<usize>, Vec<usize>) = b
+//         .iter()
+//         .enumerate()
+//         .filter_map(|(i, b_i)| {
+//             let index = sorted_a.binary_search(&b_i);
+//             if let Ok(index) = index {
+//                 Some((indices[index], i))
+//             } else {
+//                 None
+//             }
+//         })
+//         .unzip();
+
+//     Ok((a_ix.into_pyarray(py), b_ix.into_pyarray(py)))
+// }
 
 macro_rules! make_i1d_implementation {
     ($($n:ident, $t:expr),+) => {
@@ -134,6 +150,7 @@ make_par_i1d_implementation!(
 
 #[pymodule]
 fn fastxm(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(hash_array, m)?)?;
     m.add_function(wrap_pyfunction!(i1d_i8, m)?)?;
     m.add_function(wrap_pyfunction!(i1d_i16, m)?)?;
     m.add_function(wrap_pyfunction!(i1d_i32, m)?)?;

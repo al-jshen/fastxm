@@ -42,3 +42,16 @@ jobs:
         with:
           name: wheels
           path: dist
+
+  publish:
+    needs: ["linux", "macos"]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: wheels
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}

@@ -4,12 +4,12 @@ on:
   push:
     branches:
       - main
-      - master
     paths:
       - "python/**"
       - "src/**"
       - "tests/**"
       - "pyproject.toml"
+      - "Cargo.toml"
   pull_request:
   workflow_dispatch:
 

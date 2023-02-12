@@ -10,7 +10,7 @@ From `PyPI`:
 pip install fastxm
 ```
 
-From source:
+From source (requires [maturin](https://github.com/PyO3/maturin/)):
 
 ```bash
 git clone https://github.com/al-jshen/fastxm

@@ -16,7 +16,7 @@ where
 
 #[pyfunction]
 pub fn hash_array<'py>(py: Python<'py>, arr: PyReadonlyArray1<PyObject>) -> &'py PyArray1<u64> {
-    let arr = arr.as_array();
+    let arr = arr.as_slice().unwrap();
     let mut hasher = AHasher::default();
     let hashes = arr
         .iter()
@@ -64,7 +64,8 @@ macro_rules! make_i1d_implementation {
                 a: PyReadonlyArray1<$t>,
                 b: PyReadonlyArray1<$t>,
             ) -> PyResult<(&'py PyArray1<usize>, &'py PyArray1<usize>)> {
-                let (a, b) = if a.len() < b.len() { (b, a) } else { (a, b) };
+                let swap = a.len() < b.len();
+                let (a, b) = if swap { (b, a) } else { (a, b) };
                 let a = a.as_slice()?;
                 let b = b.as_slice()?;
                 let indices = argsort(a);
@@ -82,7 +83,11 @@ macro_rules! make_i1d_implementation {
                     })
                     .unzip();
 
-                Ok((a_ix.into_pyarray(py), b_ix.into_pyarray(py)))
+                if swap {
+                    Ok((b_ix.into_pyarray(py), a_ix.into_pyarray(py)))
+                } else {
+                    Ok((a_ix.into_pyarray(py), b_ix.into_pyarray(py)))
+                }
             }
         )+
     };
@@ -97,7 +102,8 @@ macro_rules! make_par_i1d_implementation {
                 a: PyReadonlyArray1<$t>,
                 b: PyReadonlyArray1<$t>,
             ) -> PyResult<(&'py PyArray1<usize>, &'py PyArray1<usize>)> {
-                let (a, b) = if a.len() < b.len() { (b, a) } else { (a, b) };
+                let swap = a.len() < b.len();
+                let (a, b) = if swap { (b, a) } else { (a, b) };
                 let a = a.as_slice()?;
                 let b = b.as_slice()?;
                 let indices = argsort(a);
@@ -115,7 +121,11 @@ macro_rules! make_par_i1d_implementation {
                     })
                     .unzip();
 
-                Ok((a_ix.into_pyarray(py), b_ix.into_pyarray(py)))
+                if swap {
+                    Ok((b_ix.into_pyarray(py), a_ix.into_pyarray(py)))
+                } else {
+                    Ok((a_ix.into_pyarray(py), b_ix.into_pyarray(py)))
+                }
             }
         )+
     };
